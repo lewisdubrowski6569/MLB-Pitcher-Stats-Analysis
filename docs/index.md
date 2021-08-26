@@ -1,15 +1,9 @@
-#Entrance Page
+# Entrance Page
 
-# Header 1
-## Header 2
-### Header 3
+Access the interactive plots produced by my code below:
 
-- Bulleted
-- List
+**Stabilization Rates for Per-PA Stats**
+[Link](url)
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+**Stabilization Rates for Per-Pitch Stats**
+[Link](url)
