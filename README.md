@@ -19,7 +19,7 @@ The Calculate Stabilization Rates for Pitcher Statistics.Rmd file contains the c
 ### In the ShinyApp folder:
 The app.R file contains the code needed to run the app.
 The two csv files in this folder are used to produce the plots in the app.
-The link to the app can be found at [tinyurl.com/StabilizationRatesApp](tinyurl.com/StabilizationRatesApp).
+The link to the app can be found at [tinyurl.com/StabilizationRatesApp](https://lewisdubrowski6569.shinyapps.io/pitcherstatstabilizationratesapp/).
 
 ### In the plots folder:
 This folder contains all the plots produced in the code as png files.
