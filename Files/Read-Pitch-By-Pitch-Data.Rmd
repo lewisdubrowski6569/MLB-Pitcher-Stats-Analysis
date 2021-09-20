@@ -1,0 +1,377 @@
+---
+title: "Read Data"
+output:
+  word_document: default
+  html_notebook: default
+  pdf_document: default
+---
+
+This code takes a long time to run, so I ran all it once to get a databse file I could work with. This made the analysis easier.
+
+
+First, load thepackages we will need
+```{r}
+library(devtools)
+devtools::install_github("BillPetti/baseballr") #used to install the baseballr package
+library(baseballr)
+library(dplyr)
+library(RSQLite)
+library(tidyr)
+
+```
+
+
+Next, we will load the data into R
+The pitch-by-pitch data loaded comes from https://baseballsavant.mlb.com/ and is accessed using the baseballr package found here:
+http://billpetti.github.io/baseballr/
+```{r}
+
+#add memory we will need to load all the data into the system
+memory.limit(size = 60000)
+
+#get all the data from 2008:
+#it is split up by every couple weeks of the season, otherwise the data would not download correctly
+pitchers1 <- scrape_statcast_savant_pitcher_all('2008-03-25', '2008-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2008-04-07', '2008-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2008-04-16', '2008-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2008-04-25', '2008-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2008-05-04', '2008-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2008-05-13', '2008-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2008-05-22', '2008-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2008-06-01', '2008-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2008-06-09', '2008-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2008-06-17', '2008-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2008-06-25', '2008-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2008-07-01', '2008-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2008-07-09', '2008-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2008-07-17', '2008-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2008-07-26', '2008-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2008-08-02', '2008-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2008-08-11', '2008-08-19')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2008-08-20', '2008-08-28')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2008-08-29', '2008-09-07')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2008-09-08', '2008-09-16')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2008-09-17', '2008-09-25')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2008-09-26', '2008-09-30')
+
+#combine the individual files into one dataframe for 2008:
+all_pitchers_2008 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2009:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2009-04-05', '2009-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2009-04-07', '2009-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2009-04-16', '2009-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2009-04-25', '2009-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2009-05-04', '2009-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2009-05-13', '2009-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2009-05-22', '2009-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2009-06-01', '2009-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2009-06-09', '2009-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2009-06-17', '2009-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2009-06-25', '2009-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2009-07-01', '2009-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2009-07-09', '2009-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2009-07-17', '2009-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2009-07-26', '2009-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2009-08-02', '2009-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2009-08-11', '2009-08-19')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2009-08-20', '2009-08-28')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2009-08-29', '2009-09-07')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2009-09-08', '2009-09-16')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2009-09-17', '2009-09-25')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2009-09-26', '2009-10-06')
+
+all_pitchers_2009 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2010:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2010-04-04', '2010-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2010-04-07', '2010-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2010-04-16', '2010-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2010-04-25', '2010-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2010-05-04', '2010-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2010-05-13', '2010-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2010-05-22', '2010-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2010-06-01', '2010-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2010-06-09', '2010-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2010-06-17', '2010-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2010-06-25', '2010-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2010-07-01', '2010-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2010-07-09', '2010-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2010-07-17', '2010-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2010-07-26', '2010-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2010-08-02', '2010-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2010-08-11', '2010-08-19')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2010-08-20', '2010-08-28')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2010-08-29', '2010-09-07')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2010-09-08', '2010-09-16')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2010-09-17', '2010-09-25')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2010-09-26', '2010-10-03')
+
+all_pitchers_2010 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2011:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2011-03-31', '2011-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2011-04-07', '2011-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2011-04-16', '2011-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2011-04-25', '2011-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2011-05-04', '2011-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2011-05-13', '2011-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2011-05-22', '2011-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2011-06-01', '2011-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2011-06-09', '2011-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2011-06-17', '2011-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2011-06-25', '2011-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2011-07-01', '2011-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2011-07-09', '2011-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2011-07-17', '2011-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2011-07-26', '2011-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2011-08-02', '2011-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2011-08-11', '2011-08-19')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2011-08-20', '2011-08-28')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2011-08-29', '2011-09-07')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2011-09-08', '2011-09-16')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2011-09-17', '2011-09-25')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2011-09-26', '2011-09-28')
+
+all_pitchers_2011 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2012:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2012-03-28', '2012-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2012-04-07', '2012-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2012-04-16', '2012-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2012-04-25', '2012-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2012-05-04', '2012-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2012-05-13', '2012-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2012-05-22', '2012-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2012-06-01', '2012-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2012-06-09', '2012-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2012-06-17', '2012-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2012-06-25', '2012-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2012-07-01', '2012-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2012-07-09', '2012-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2012-07-17', '2012-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2012-07-26', '2012-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2012-08-02', '2012-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2012-08-11', '2012-08-19')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2012-08-20', '2012-08-28')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2012-08-29', '2012-09-07')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2012-09-08', '2012-09-16')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2012-09-17', '2012-09-25')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2012-09-26', '2012-10-03')
+
+all_pitchers_2012 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2013:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2013-03-31', '2013-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2013-04-07', '2013-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2013-04-16', '2013-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2013-04-25', '2013-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2013-05-04', '2013-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2013-05-13', '2013-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2013-05-22', '2013-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2013-06-01', '2013-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2013-06-09', '2013-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2013-06-17', '2013-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2013-06-25', '2013-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2013-07-01', '2013-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2013-07-09', '2013-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2013-07-17', '2013-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2013-07-26', '2013-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2013-08-02', '2013-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2013-08-11', '2013-08-19')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2013-08-20', '2013-08-28')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2013-08-29', '2013-09-07')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2013-09-08', '2013-09-16')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2013-09-17', '2013-09-25')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2013-09-26', '2013-09-30')
+
+all_pitchers_2013 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2014:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2014-03-22', '2014-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2014-04-07', '2014-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2014-04-16', '2014-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2014-04-25', '2014-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2014-05-04', '2014-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2014-05-13', '2014-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2014-05-22', '2014-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2014-06-01', '2014-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2014-06-09', '2014-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2014-06-17', '2014-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2014-06-25', '2014-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2014-07-01', '2014-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2014-07-09', '2014-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2014-07-17', '2014-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2014-07-26', '2014-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2014-08-02', '2014-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2014-08-11', '2014-08-19')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2014-08-20', '2014-08-28')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2014-08-29', '2014-09-07')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2014-09-08', '2014-09-16')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2014-09-17', '2014-09-25')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2014-09-26', '2014-09-28')
+
+all_pitchers_2014 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2015:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2015-04-05', '2015-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2015-04-07', '2015-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2015-04-16', '2015-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2015-04-25', '2015-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2015-05-04', '2015-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2015-05-13', '2015-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2015-05-22', '2015-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2015-06-01', '2015-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2015-06-09', '2015-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2015-06-17', '2015-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2015-06-25', '2015-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2015-07-01', '2015-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2015-07-09', '2015-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2015-07-17', '2015-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2015-07-26', '2015-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2015-08-02', '2015-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2015-08-11', '2015-08-19')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2015-08-20', '2015-08-28')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2015-08-29', '2015-09-07')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2015-09-08', '2015-09-16')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2015-09-17', '2015-09-25')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2015-09-26', '2015-10-04')
+
+all_pitchers_2015 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2016:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2016-04-03', '2016-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2016-04-07', '2016-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2016-04-16', '2016-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2016-04-25', '2016-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2016-05-04', '2016-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2016-05-13', '2016-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2016-05-22', '2016-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2016-06-01', '2016-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2016-06-09', '2016-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2016-06-17', '2016-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2016-06-25', '2016-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2016-07-01', '2016-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2016-07-09', '2016-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2016-07-17', '2016-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2016-07-26', '2016-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2016-08-02', '2016-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2016-08-11', '2016-08-19')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2016-08-20', '2016-08-28')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2016-08-29', '2016-09-07')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2016-09-08', '2016-09-16')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2016-09-17', '2016-09-25')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2016-09-26', '2016-10-02')
+
+all_pitchers_2016 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2017:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2017-04-02', '2017-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2017-04-07', '2017-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2017-04-16', '2017-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2017-04-25', '2017-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2017-05-04', '2017-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2017-05-13', '2017-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2017-05-22', '2017-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2017-06-01', '2017-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2017-06-09', '2017-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2017-06-17', '2017-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2017-06-25', '2017-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2017-07-01', '2017-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2017-07-09', '2017-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2017-07-17', '2017-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2017-07-26', '2017-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2017-08-02', '2017-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2017-08-11', '2017-08-18')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2017-08-19', '2017-08-26')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2017-08-27', '2017-09-04')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2017-09-05', '2017-09-13')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2017-09-14', '2017-09-22')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2017-09-23', '2017-10-01')
+
+all_pitchers_2017 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2018:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2018-03-30', '2018-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2018-04-07', '2018-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2018-04-16', '2018-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2018-04-25', '2018-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2018-05-04', '2018-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2018-05-13', '2018-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2018-05-22', '2018-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2018-06-01', '2018-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2018-06-09', '2018-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2018-06-17', '2018-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2018-06-25', '2018-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2018-07-01', '2018-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2018-07-09', '2018-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2018-07-17', '2018-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2018-07-26', '2018-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2018-08-02', '2018-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2018-08-11', '2018-08-18')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2018-08-19', '2018-08-26')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2018-08-27', '2018-09-04')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2018-09-05', '2018-09-13')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2018-09-14', '2018-09-22')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2018-09-23', '2018-10-01')
+
+all_pitchers_2018 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#do the same for 2019:
+pitchers1 <- scrape_statcast_savant_pitcher_all('2019-03-28', '2019-04-06')
+pitchers2 <- scrape_statcast_savant_pitcher_all('2019-04-07', '2019-04-15')
+pitchers3 <- scrape_statcast_savant_pitcher_all('2019-04-16', '2019-04-24')
+pitchers4 <- scrape_statcast_savant_pitcher_all('2019-04-25', '2019-05-03')
+pitchers5 <- scrape_statcast_savant_pitcher_all('2019-05-04', '2019-05-12')
+pitchers6 <- scrape_statcast_savant_pitcher_all('2019-05-13', '2019-05-21')
+pitchers7 <- scrape_statcast_savant_pitcher_all('2019-05-22', '2019-05-31')
+pitchers8 <- scrape_statcast_savant_pitcher_all('2019-06-01', '2019-06-08')
+pitchers9 <- scrape_statcast_savant_pitcher_all('2019-06-09', '2019-06-16')
+pitchers10 <- scrape_statcast_savant_pitcher_all('2019-06-17', '2019-06-24')
+pitchers11 <- scrape_statcast_savant_pitcher_all('2019-06-25', '2019-06-30')
+pitchers12 <- scrape_statcast_savant_pitcher_all('2019-07-01', '2019-07-08')
+pitchers13<- scrape_statcast_savant_pitcher_all('2019-07-09', '2019-07-16')
+pitchers14 <- scrape_statcast_savant_pitcher_all('2019-07-17', '2019-07-25')
+pitchers15 <- scrape_statcast_savant_pitcher_all('2019-07-26', '2019-08-01')
+pitchers16 <- scrape_statcast_savant_pitcher_all('2019-08-02', '2019-08-10')
+pitchers17 <- scrape_statcast_savant_pitcher_all('2019-08-11', '2019-08-18')
+pitchers18 <- scrape_statcast_savant_pitcher_all('2019-08-19', '2019-08-26')
+pitchers19 <- scrape_statcast_savant_pitcher_all('2019-08-27', '2019-09-04')
+pitchers20 <- scrape_statcast_savant_pitcher_all('2019-09-05', '2019-09-13')
+pitchers21 <- scrape_statcast_savant_pitcher_all('2019-09-14', '2019-09-22')
+pitchers22 <- scrape_statcast_savant_pitcher_all('2019-09-23', '2019-09-29')
+
+all_pitchers_2019 <- rbind(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5, pitchers6, pitchers7, pitchers8, pitchers9, pitchers10, pitchers11, pitchers12, pitchers13, pitchers14, pitchers15, pitchers16, pitchers17, pitchers18, pitchers19, pitchers20, pitchers21, pitchers22)
+
+#clear some space by removing the dataframes we will no longer use
+rm(pitchers1, pitchers2, pitchers3, pitchers4, pitchers5,
+   pitchers6, pitchers7, pitchers8, pitchers9, pitchers10,
+   pitchers11, pitchers12, pitchers13, pitchers14, pitchers15,
+   pitchers16, pitchers17, pitchers18, pitchers19, pitchers20,
+   pitchers21, pitchers22)
+
+#combine the data from individual years into one large dataframe of all the pitch-by-pitch data in MLB from 2008 to 2019.
+all_pitchers_total <- rbind(all_pitchers_2019,all_pitchers_2018, all_pitchers_2017, all_pitchers_2016, all_pitchers_2015, all_pitchers_2014, all_pitchers_2013, all_pitchers_2012, all_pitchers_2011, all_pitchers_2010, all_pitchers_2009, all_pitchers_2008)
+
+#again, clear some space and remove the dataframes we will no longer need to use:
+rm(all_pitchers_2019,all_pitchers_2018, all_pitchers_2017,
+   all_pitchers_2016, all_pitchers_2015, all_pitchers_2014,
+   all_pitchers_2013, all_pitchers_2012, all_pitchers_2011,
+   all_pitchers_2010, all_pitchers_2009, all_pitchers_2008)
+
+
+```
+
+To make a database file, we build a SQLite connection and write a new table from our 'all_pitchers_total' dataframe
+```{r}
+
+#create SQLite connection
+mySQLiteDB <- dbConnect(RSQLite::SQLite(), ":memory:") #This will save the database in memory. Replace ":memory:" with a database file name to save it permanently in a file.
+
+all_pitchers_total$game_date <- as.character(all_pitchers_total$game_date)
+all_pitchers_total <- all_pitchers_total %>% separate(game_date, c("game_year", "game_month", "game_day"), "-")
+
+dbWriteTable(mySQLiteDB, "PitchByPitch", all_pitchers_total, overwrite = TRUE)
+
+```
+
